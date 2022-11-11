@@ -1,24 +1,18 @@
 import {
   GetOAuthAccessTokenArgs,
   GetOAuthLoginUrlArgs,
-  OAuthApiInterface,
-  UnifiedClients,
 } from '../types'
 
-class OAuthApi implements OAuthApiInterface {
-  protected clients
+import { RestClient } from '../client/rest'
 
-  constructor(clients: UnifiedClients) {
-    this.clients = clients
-  }
-
-  getAccessToken =(args: GetOAuthAccessTokenArgs): Promise<string> => {
+class OAuthApi {
+  static getAccessToken =(args: GetOAuthAccessTokenArgs): Promise<string> => {
     const { clientId, clientSecret, query } = args
 
-    return this.clients.rest.getOAuthAccessToken({ clientId, clientSecret, query })
+    return RestClient.getOAuthAccessToken({ clientId, clientSecret, query })
   }
 
-  getLoginUrl = (args: GetOAuthLoginUrlArgs): string => this.clients.rest.getOAuthLoginUrl(args)
+  static getLoginUrl = (args: GetOAuthLoginUrlArgs): string => RestClient.getOAuthLoginUrl(args)
 }
 
 export { OAuthApi }

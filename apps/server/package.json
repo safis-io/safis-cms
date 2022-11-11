@@ -1,0 +1,28 @@
+{
+  "name": "@safis/cms-server",
+  "version": "0.0.1-rc1",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "ts-node server.ts",
+    "start": "node dist/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cookie": "8.1.0",
+    "@safis/cms-github-adapter": "*",
+    "@safis/cms-schema": "*",
+    "dotenv": "16.0.2",
+    "fastify": "4.6.0",
+    "fastify-plugin": "4.2.1",
+    "lodash.camelcase": "4.3.0",
+    "mercurius": "11.0.0"
+  },
+  "devDependencies": {
+    "@safis/cms-tsconfig": "*",
+    "@types/lodash.camelcase": "4.3.7",
+    "ts-node": "10.9.1"
+  }
+}

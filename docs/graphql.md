@@ -174,7 +174,7 @@ type User implements Content {
   userId: String
   name: String
   age: Float
-  sys: SysContent
+  __sys: Sys
 }
 
 input UserInput {
@@ -457,7 +457,7 @@ type User implements Content {
   name: String
   age: Float
   isActive: Boolean # new field
-  sys: SysContent
+  __sys: Sys
 }
 
 input UserInput {
@@ -678,7 +678,7 @@ type User implements Content {
   userId: String
   name: String
   age: Float
-  sys: SysContent
+  __sys: Sys
 }
 
 input UserInput {
@@ -745,7 +745,7 @@ mutation addNewUser {
         "id": "User",
         "name": "User",
         "description": "This an updated description for the User content type",
-        "__typename": "SysContent"
+        "__typename": "Sys"
       },
       "__typename": "User"
     }
@@ -794,7 +794,7 @@ mutation updateUser {
         "id": "User",
         "name": "User",
         "description": "This an updated description for the User content type",
-        "__typename": "SysContent"
+        "__typename": "Sys"
       },
       "__typename": "User"
     }
@@ -839,7 +839,7 @@ query getOneContentEntry {
         "id": "User",
         "name": "User",
         "description": "This an updated description for the User content type",
-        "__typename": "SysContent"
+        "__typename": "Sys"
       },
       "__typename": "User"
     }
@@ -884,7 +884,7 @@ query getAllContentEntries {
           "id": "User",
           "name": "User",
           "description": "This an updated description for the User content type",
-          "__typename": "SysContent"
+          "__typename": "Sys"
         },
         "__typename": "User"
       },
@@ -897,7 +897,7 @@ query getAllContentEntries {
           "id": "User",
           "name": "User",
           "description": "Azúcar!",
-          "__typename": "SysContent"
+          "__typename": "Sys"
         },
         "__typename": "User"
       }

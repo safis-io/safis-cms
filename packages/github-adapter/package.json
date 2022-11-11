@@ -1,14 +1,11 @@
 {
-  "name": "safis-cms-github-adapter",
-  "version": "1.0.0-beta.4",
+  "name": "@safis/cms-github-adapter",
+  "version": "0.0.1-rc1",
   "description": "GitHub adapter for Safis CMS",
   "scripts": {
     "build": "tsc",
-    "prebuild": "npm run clean",
     "clean": "rm -rf dist/*"
   },
-  "main": "dist/index.js",
-  "types": "dist/types.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/safis-io/safis-cms.git"
@@ -33,20 +30,21 @@
   },
   "homepage": "https://github.com/safis-io/safis-cms#readme",
   "engines": {
-    "node": ">=14.17.0",
-    "npm": ">=6.14.13"
+    "node": ">=16",
+    "npm": ">=8"
   },
   "dependencies": {
     "@octokit/core": "^3.1.2",
     "lodash.get": "^4.4.2",
     "lodash.isnil": "^4.0.0"
   },
-  "files": [
-    "dist/"
-  ],
   "devDependencies": {
+    "@safis/cms-tsconfig": "*",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.isnil": "^4.0.6",
-    "typescript": "^4.3.5"
+    "typescript": "4.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

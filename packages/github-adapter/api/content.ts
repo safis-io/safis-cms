@@ -1,166 +1,205 @@
-import get from 'lodash.get'
-import isNil from 'lodash.isnil'
+import get from 'lodash.get';
+import isNil from 'lodash.isnil';
 
-import { FileApi } from './file'
+import { FileApi } from './file';
 import {
   ContentApiInterface,
   CreateContentArgs,
-  DeleteFileContentArgs,
+  DeleteContentArgs,
+  FileContentTypesEnum,
   FileApiInterface,
   GenericContent,
-  GetFileContentArgs,
-  GetFolderContentArgs,
+  RepoInfo,
   UnifiedClients,
   UpdateContentArgs,
-} from '../types'
+  GetContentArgs,
+  GetAllContentArgs,
+  GetManyContentArgs,
+} from '../types';
+import { FILE_EXTENSION, repoPathTransforms } from '../constants';
 
 class ContentApi implements ContentApiInterface {
-  protected clients: UnifiedClients
-
-  protected contentTypeName: string
+  protected fileContentTypeName: FileContentTypesEnum
 
   protected fileApi: FileApiInterface
 
-  constructor(clients: UnifiedClients, contentTypeName: string) {
-    this.clients = clients
-    this.contentTypeName = contentTypeName
-    this.fileApi = new FileApi(clients)
+  protected repoInfo: RepoInfo
+
+  protected rootPath: string
+
+  constructor(
+    clients: UnifiedClients,
+    repoInfo: RepoInfo,
+    fileContentTypeName: FileContentTypesEnum,
+  ) {
+    this.fileContentTypeName = fileContentTypeName;
+    const repoPathType = repoPathTransforms[fileContentTypeName];
+    this.rootPath = repoInfo.paths[repoPathType] as string;
+    this.repoInfo = repoInfo;
+    this.fileApi = new FileApi(clients, repoInfo);
+  }
+
+  private _getFullPath = (contentPath: string, subFolder?: string): string => `${this._getFolderPath(subFolder)}${contentPath}`
+
+  private _getFolderPath = (subFolderName?: string): string => {
+    if (!subFolderName) return this.rootPath;
+
+    const subFolderPath = subFolderName.endsWith('/') ? subFolderName : `${subFolderName}/`;
+
+    return `${this.rootPath}${subFolderPath}`;
+  }
+
+  private _getContentFileName = (id: string): string => {
+    if (!id) {
+      throw new Error(`"id" property is required to retrieve the ${this.fileContentTypeName}`);
+    }
+
+    return `${id}.${FILE_EXTENSION}`;
   }
 
   create = async (args: CreateContentArgs): Promise<GenericContent> => {
     const {
-      owner,
-      repo,
+      id,
       branch,
-      path,
+      subFolder,
       content,
       commitMessage = this.getDefaultCommitMessage('Add'),
-    } = args
+    } = args;
+    const fileName = this._getContentFileName(id);
+    const fullPath = this._getFullPath(fileName, subFolder);
     const fileContent = await this.fileApi.getFileContent({
-      owner,
-      repo,
-      path,
+      path: fullPath,
       branch,
-    })
+    });
 
-    if (!isNil(fileContent)) throw new Error(`${this.contentTypeName} already exists.`)
+    if (!isNil(fileContent)) throw new Error(`${this.fileContentTypeName} already exists.`);
 
     await this.fileApi.createFileContent({
-      repo,
-      owner,
       branch,
       files: {
         content: JSON.stringify(content),
-        path,
+        path: fullPath,
       },
       commitMessage,
-    })
+    });
 
-    return content
+    return content;
   }
 
-  delete = async (args: DeleteFileContentArgs): Promise<boolean> => {
+  delete = async (args: DeleteContentArgs): Promise<boolean> => {
     const {
-      owner,
-      repo,
       branch,
-      path,
+      subFolder,
+      id,
       commitMessage = this.getDefaultCommitMessage('Delete'),
-    } = args
+    } = args;
+    const fileName = this._getContentFileName(id);
+    const fullPath = this._getFullPath(fileName, subFolder);
     const fileContent = await this.fileApi.getFileContent({
-      owner,
-      repo,
-      path,
+      path: fullPath,
       branch,
-    })
+    });
 
-    if (isNil(fileContent)) throw new Error(`${this.contentTypeName} not found.`)
+    if (isNil(fileContent)) throw new Error(`${this.fileContentTypeName} not found.`);
 
     await this.fileApi.deleteFileContent({
-      repo,
-      owner,
       branch,
-      path,
+      path: fullPath,
       commitMessage,
-    })
+    });
 
-    return true
+    return true;
   }
 
-  get = async (args: GetFileContentArgs): Promise<GenericContent | null> => {
-    const { owner, repo, path, branch } = args
+  get = async (args: GetContentArgs): Promise<GenericContent | null> => {
+    const { id, subFolder, branch } = args;
+    const fileName = this._getContentFileName(id);
     const fileContent = await this.fileApi.getFileContent({
-      owner,
-      repo,
-      path,
+      path: this._getFullPath(fileName, subFolder),
       branch,
-    })
+    });
 
-    if (isNil(fileContent)) return null
+    if (isNil(fileContent)) return null;
 
-    return JSON.parse(fileContent)
+    return JSON.parse(fileContent);
   }
 
-  protected getDefaultCommitMessage = (action: string): string => `${action} ${this.contentTypeName} - Safis CMS`
+  protected getDefaultCommitMessage = (action: string): string => `${action} ${this.fileContentTypeName} - Safis CMS`
 
-  getAll = async (args: GetFolderContentArgs): Promise<GenericContent[]> => {
-    const { owner, repo, path, branch } = args
+  getAll = async (args: GetAllContentArgs): Promise<GenericContent[]> => {
+    const { branch, subFolder } = args;
     const filesContent = await this.fileApi.getFolderContent({
-      owner,
-      repo,
-      path,
+      path: this._getFolderPath(subFolder),
       branch,
-    })
+    });
 
-    return filesContent.reduce((filtered, entry) => {
-      const content = get(entry, 'object.text') as string | undefined
-
+    return filesContent.reduce((filtered, content) => {
       if (!isNil(content)) {
-        filtered.push(JSON.parse(content as string))
+        filtered.push(JSON.parse(content as string));
       }
 
-      return filtered
-    }, [] as GenericContent[])
+      return filtered;
+    }, [] as GenericContent[]);
+  }
+
+  getMany = async (args: GetManyContentArgs): Promise<(GenericContent | null)[]> => {
+    const { branch, files } = args;
+    const filesInfo = files.map(({ id, type }) => {
+      const fileName = this._getContentFileName(id);
+      const filePath = this._getFullPath(fileName, type);
+
+      return { path: filePath, id };
+    });
+
+    const filesContent: (string | null)[] = await this.fileApi.getFilteredFilesContent({
+      files: filesInfo,
+      branch,
+    });
+
+    return filesContent.reduce((filtered, entry) => {
+      const content = get(entry, 'object.text') as string | undefined;
+
+      filtered.push(!content ? null : JSON.parse(content as string));
+
+      return filtered;
+    }, [] as (GenericContent | null)[]);
   }
 
   update = async (args: UpdateContentArgs): Promise<GenericContent> => {
     const {
-      owner,
-      repo,
+      id,
       branch,
-      path,
+      subFolder,
       content: newContent,
       commitMessage = this.getDefaultCommitMessage('Update'),
-    } = args
+    } = args;
+    const fileName = this._getContentFileName(id);
+    const fullPath = this._getFullPath(fileName, subFolder);
     const fileContent = await this.fileApi.getFileContent({
-      owner,
-      repo,
-      path,
+      path: fullPath,
       branch,
-    })
+    });
 
-    if (isNil(fileContent)) throw new Error(`${this.contentTypeName} not found.`)
+    if (isNil(fileContent)) throw new Error(`${this.fileContentTypeName} not found.`);
 
-    const parsedExistingContent = JSON.parse(fileContent)
+    const parsedExistingContent = JSON.parse(fileContent);
 
     const mergedContent = {
       ...parsedExistingContent,
       ...newContent,
-    }
+    };
 
     await this.fileApi.createFileContent({
-      repo,
-      owner,
       branch,
       files: {
         content: JSON.stringify(mergedContent),
-        path,
+        path: fullPath,
       },
       commitMessage,
-    })
+    });
 
-    return mergedContent
+    return mergedContent;
   }
 }
 
-export { ContentApi }
+export { ContentApi };

@@ -1,18 +1,33 @@
 {
-  "name": "safis-cms-monorepo",
+  "name": "@safis/cms-monorepo",
   "description": "A headless, git-based and GraphQL native CMS",
+  "workspaces": [
+    "./packages/tsconfig",
+    "./packages/github-adapter",
+    "./packages/schema",
+    "./apps/*"
+  ],
   "scripts": {
-    "lerna-install": "npm install && lerna bootstrap",
-    "bootstrap": "lerna bootstrap",
-    "prebootstrap": "npm run build",
-    "build": "lerna run build --parallel --ignore safis-cms --ignore safis-cms-app",
-    "clean": "lerna clean --yes",
+    "build": "turbo run build",
     "dev": "npm-run-all --print-label --parallel dev:**",
-    "dev:app": "DOTENV_PATH=$PWD lerna run develop --scope safis-cms-app --stream",
-    "dev:server": "DOTENV_PATH=$PWD nodemon --exec 'npm run bootstrap && lerna run dev --scope safis-cms-server --stream'",
+    "dev:server": "DOTENV_PATH=$PWD nodemon --exec 'turbo run dev --filter=cms-server'",
     "lint": "eslint . --ignore-path .gitignore",
-    "test": "lerna run test",
-    "lerna": "npm run lerna"
+    "test": "turbo run test"
+  },
+  "engines": {
+    "node": ">=16",
+    "npm": ">=8"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "nodemon": "^2.0.6",
+    "npm-run-all": "^4.1.5",
+    "turbo": "^1.4.6",
+    "typescript": "4.8.3"
   },
   "repository": {
     "type": "git",
@@ -32,22 +47,5 @@
   "bugs": {
     "url": "https://github.com/safis-io/safis-cms/issues"
   },
-  "homepage": "https://github.com/safis-io/safis-cms#readme",
-  "engines": {
-    "node": ">=14.17.0",
-    "npm": ">=6.14.13"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
-    "eslint": "^7.29.0",
-    "lerna": "^3.22.1",
-    "typescript": "^4.3.4"
-  },
-  "dependencies": {
-    "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-import": "^2.22.1",
-    "nodemon": "^2.0.6",
-    "npm-run-all": "^4.1.5"
-  }
+  "homepage": "https://github.com/safis-io/safis-cms#readme"
 }

@@ -1,12 +1,13 @@
 {
   "delay": 2500,
-  "ext": "ts,js,json",
+  "ext": "ts,js",
   "ignore": [
-    "packages/app/",
-    "packages/*/dist/",
-    "packages/*/package*.json"
+    "apps/web",
+    "apps/*/dist/",
+    "packages/*/dist/"
   ],
   "watch": [
-    "packages"
+    "packages",
+    "apps"
   ]
 }

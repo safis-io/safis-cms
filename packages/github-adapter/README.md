@@ -1,3 +1,3 @@
-# safis-cms-github-adapter
+# @safis/cms-github-adapter
 
 GitHub adapter for Safis CMS.

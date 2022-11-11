@@ -94,7 +94,7 @@ export type CreateRefArgs = {
 
 export type CreateRepoArgs = {
   name: string,
-  description: string,
+  description?: string,
   isPrivate: boolean,
 }
 
@@ -200,6 +200,13 @@ export type GraphQLGetFileContentArgs = {
   repo: string,
 }
 
+export type GraphQLGetFilteredFilesContentArgs = {
+  branch: string;
+  owner: string;
+  files: { path: string, fieldName: string }[];
+  repo: string;
+}
+
 export type GraphQLGetFolderContentArgs = GraphQLGetFileContentArgs
 
 export type GraphQLGetBaseCommitInfoResponse = {
@@ -218,6 +225,14 @@ export type GraphQLGetBaseCommitInfoResponse = {
 export type GraphQLGetRepositoryResponse = {
   repository: {
     name: string
+    description: string
+    defaultBranchRef: {
+      name: string
+    }
+    isPrivate: boolean
+    owner: {
+      login: string
+    }
   }
 }
 
@@ -226,6 +241,22 @@ export type GraphQLGetFileContentResponse = {
     ref: {
       target: {
         file: {
+          object: {
+            __typename: string
+            id: string
+            text: string
+            isTruncated: boolean
+          }
+        }
+      }
+    }
+  }
+}
+export type GraphQLGeFilteredtFilesContentResponse = {
+  repository: {
+    ref: {
+      target: {
+        [fileFieldName: string]: {
           object: {
             __typename: string
             id: string
@@ -262,9 +293,23 @@ export type GraphQLGetFolderContentResponse = {
   }
 }
 
+export type GitHubGraphQLError = {
+  type: string,
+  message: string,
+  locations: any[],
+  path: [string]
+}
+
+export enum GraphQLClientErrorsEnum {
+  NOT_FOUND = 'NOT_FOUND'
+}
+
 export interface GraphQLClientInterface {
   getBaseCommitInfo(args: GetBaseCommitInfoArgs): Promise<GraphQLGetBaseCommitInfoResponse>
   getFileContent(args: GraphQLGetFileContentArgs): Promise<GraphQLGetFileContentResponse>
+  getFilteredFilesContent(
+    args: GraphQLGetFilteredFilesContentArgs,
+  ): Promise<GraphQLGeFilteredtFilesContentResponse>
   getFolderContent(args: GraphQLGetFolderContentArgs): Promise<GraphQLGetFolderContentResponse>
   getRepository(args: GetRepositoryArgs): Promise<GraphQLGetRepositoryResponse>
 }
@@ -286,10 +331,6 @@ export interface RestClientInterface {
 
   // user
   getAuthenticatedUser: () => Promise<AuthenticatedUser>,
-
-  // oatuh
-  getOAuthAccessToken: (args: GetOAuthAccessTokenArgs) => Promise<string>,
-  getOAuthLoginUrl: (args: GetOAuthLoginUrlArgs) => string,
 }
 
 export type UnifiedClients = {
@@ -305,36 +346,49 @@ export type InputFile = {
 }
 
 export type CreateBlobInfoArgs = {
-  repo: string,
-  owner: string,
   files: InputFile | InputFile[],
-  multi: boolean,
+  isList: boolean,
 }
 
 export type CreateFileContentArgs = {
-  repo: string,
-  owner: string,
-  branch: string,
+  branch?: string,
   files: InputFile | InputFile[],
   commitMessage: string,
 }
 
 export type DeleteFileContentArgs = {
-  repo: string,
-  owner: string,
-  branch: string,
+  branch?: string,
   path: string,
   commitMessage: string,
 }
 
 export type GetFileContentArgs = {
-  owner: string,
-  repo: string,
-  branch: string,
+  branch?: string,
   path: string,
 }
 
+export type GetFilteredFilesContentArgs = {
+  branch?: string,
+  files: { path: string, id: string }[],
+}
+
 export type GetFolderContentArgs = GetFileContentArgs
+
+export type GetContentArgs = {
+  id: string
+  subFolder?: string
+  branch?: string
+}
+
+export type GetAllContentArgs = {
+  subFolder?: string
+  branch?: string
+}
+
+export type GetManyContentArgs = {
+  branch?: string,
+  files: { type: string, id: string }[],
+}
 
 // File Api responses
 
@@ -362,13 +416,19 @@ export interface FileApiInterface {
   createSingleTreeItem: (args: CreateSingleTreeItemArgs) => Tree,
   createTreeItems: (
     blobInfo: CreateSingleTreeItemArgs[] | CreateSingleTreeItemArgs,
-    multi: boolean,
+    isList: boolean,
   ) => Tree[],
   createBlobInfo: (args: CreateBlobInfoArgs) => Promise<BlobInfo | BlobInfo[]>,
   createFileContent: (args: CreateFileContentArgs) => Promise<ContentInfo | ContentInfo[]>,
   deleteFileContent (args: DeleteFileContentArgs): Promise<boolean>,
   getFileContent: (args: GetFileContentArgs) => Promise<string>,
-  getFolderContent: (args: GetFolderContentArgs) => Promise<GraphQLContentEntry[]>,
+  getFilteredFilesContent: (args: GetFilteredFilesContentArgs) => Promise<(string | null)[]>,
+  getFolderContent: (args: GetFolderContentArgs) => Promise<string[]>,
+}
+
+export enum FileContentTypesEnum {
+  CONTENT = 'Content',
+  CONTENT_TYPE = 'ContentType',
 }
 
 // Content Api
@@ -379,30 +439,37 @@ export interface GenericContent {
 }
 
 // Content Api args
+export type CreateContentArgs = {
+  id: string
+  branch?: string
+  subFolder?: string
+  commitMessage?: string
+  content: GenericContent
+}
 
-export type CreateContentArgs = CreateFileContentArgs & {
-  branch: string,
-  commitMessage?: string,
-  content: GenericContent,
-  path: string,
+export type DeleteContentArgs = {
+  id: string
+  branch?: string
+  subFolder?: string
+  commitMessage?: string
 }
 
 export type UpdateContentArgs = {
-  owner: string,
-  repo: string,
-  branch: string,
-  path: string,
+  id: string
+  branch?: string
+  subFolder?: string
   content: GenericContent,
-  commitMessage?: string,
+  commitMessage?: string
 }
 
 // Content Api main interface
 
 export interface ContentApiInterface {
   create(args: CreateContentArgs): Promise<GenericContent>
-  delete(args: DeleteFileContentArgs): Promise<boolean>
-  get(args: GetFileContentArgs): Promise<GenericContent | null>
-  getAll(args: GetFolderContentArgs): Promise<GenericContent[]>
+  delete(args: DeleteContentArgs): Promise<boolean>
+  get(args: GetContentArgs): Promise<GenericContent | null>
+  getMany(args: GetManyContentArgs): Promise<(GenericContent | null)[]>
+  getAll(args: GetAllContentArgs): Promise<GenericContent[]>
   update(args: UpdateContentArgs): Promise<GenericContent>
 }
 
@@ -413,26 +480,26 @@ export enum InitRepoResponse {
   FOUND = 'FOUND', // repo was found
 }
 
+export type GetRepoInfoResponse = {
+  owner: string
+  name: string
+  description: string
+  defaultBranch: string
+  isPrivate: boolean
+}
+
 // Repository Api args
 
 export type InitRepoArgs = {
-  description: string,
+  description?: string,
   isPrivate?: boolean,
-  name: string,
-  owner: string,
-}
-
-// OAuth Api main interface
-
-export interface OAuthApiInterface {
-  getAccessToken(args: GetOAuthAccessTokenArgs): Promise<string>
-  getLoginUrl(args: GetOAuthLoginUrlArgs): string
 }
 
 // Repository Api main interface
 
 export interface RespositoryApiInterface {
   init: (args: InitRepoArgs) => Promise<InitRepoResponse>,
+  getInfo: () => Promise<GetRepoInfoResponse>,
 }
 
 // User Api main interface
@@ -441,18 +508,49 @@ export interface UserApiInterface {
   getAuthenticated(): Promise<AuthenticatedUser>
 }
 
-// GitAdapter
+// GitAdapterApi
 
-export interface GitAdapter {
+export interface GitAdapterApi {
   content: ContentApiInterface,
   contentType: ContentApiInterface,
-  oauth: OAuthApiInterface,
   repository: RespositoryApiInterface,
   user: UserApiInterface,
 }
 
-// Others
+// GitHubAdapter
 
-export enum AdapterError {
-  NOT_FOUND = 'NOT_FOUND'
+export type AuthInfo = {
+  ownerSecret: string
+}
+
+export enum RepoPathsEnum {
+  ROOT = 'root',
+  CONTENT = 'content',
+  CONTENT_TYPE = 'contentType',
+}
+
+export type RepoPaths = {
+  [RepoPathsEnum.ROOT]: string | undefined
+  [RepoPathsEnum.CONTENT]: string
+  [RepoPathsEnum.CONTENT_TYPE]: string
+}
+
+export type RepoConfig = {
+  name: string
+  owner: string
+  paths: RepoPaths
+  createAsPrivate?: boolean
+}
+
+export type RepoInfo = Omit<RepoConfig, 'createAsPrivate'> & {
+  defaultBranch: string
+}
+
+export type InitialConfigs = {
+  repo: RepoConfig
+  auth: AuthInfo
+}
+
+export type CreateGitApiArgs = {
+  secret: string
 }

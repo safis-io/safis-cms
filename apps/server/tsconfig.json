@@ -1,0 +1,10 @@
+{
+  "extends": "@safis/cms-tsconfig/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

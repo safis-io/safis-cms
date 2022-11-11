@@ -16,13 +16,13 @@
     "jest": true
   },
   "rules": {
-    "semi": ["error","never"],
     "object-curly-newline": ["error", { "multiline": true }],
     "comma-dangle": ["error", "always-multiline"],
     "import/prefer-default-export": 0,
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": ["error"],
-    "import/extensions": 0
+    "import/extensions": 0,
+    "no-underscore-dangle": ["error",  { "allowAfterThis": true }]
   },
   "settings": {
     "import/resolver": {

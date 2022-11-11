@@ -1,12 +1,10 @@
 {
-  "name": "safis-cms-schema",
-  "version": "1.0.0-beta.4",
-  "description": "Creates GraphQL schema definition for Safis CMS",
-  "main": "dist/index.js",
+  "name": "@safis/cms-schema",
+  "version": "0.0.1-rc8",
+  "description": "GraphQL schema builder for Safis CMS.",
   "scripts": {
-    "prebuild": "npm run clean",
-    "build": "babel ./ -d dist --ignore node_modules",
-    "clean": "rm -rf dist/*"
+    "build": "tsc",
+    "clean": "rm -rf dist/"
   },
   "repository": {
     "type": "git",
@@ -18,9 +16,7 @@
     "headless cms",
     "git based cms",
     "content management system",
-    "schema definition",
-    "graphql",
-    "schema"
+    "graphql"
   ],
   "author": {
     "name": "Safis",
@@ -32,21 +28,25 @@
   },
   "homepage": "https://github.com/safis-io/safis-cms#readme",
   "engines": {
-    "node": ">=14.17.0",
-    "npm": ">=6.14.13"
+    "node": ">=16",
+    "npm": ">=8"
   },
   "dependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.6",
-    "@babel/node": "^7.8.7",
-    "@babel/preset-env": "^7.9.6",
-    "core-js": "^3.6.5",
-    "lodash.camelcase": "^4.3.0",
-    "lodash.startcase": "^4.4.0",
-    "regenerator-runtime": "^0.13.5",
-    "uuid": "^8.3.1"
+    "graphql": "16.6.0",
+    "lodash.camelcase": "4.3.0",
+    "lodash.get": "4.4.2",
+    "lodash.startcase": "4.4.0",
+    "uuid": "9.0.0"
   },
-  "files": [
-    "dist/"
-  ]
+  "devDependencies": {
+    "@safis/cms-tsconfig": "*",
+    "@types/lodash.camelcase": "4.3.7",
+    "@types/lodash.get": "4.4.7",
+    "@types/lodash.startcase": "4.4.7",
+    "@types/uuid": "8.3.4",
+    "typescript": "4.7.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

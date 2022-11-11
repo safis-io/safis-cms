@@ -1,5 +1,1 @@
-import { createAdapter } from './adapter'
-
-export default createAdapter
-
-export { createAdapter }
+export { GitHubAdapter } from './adapter';
