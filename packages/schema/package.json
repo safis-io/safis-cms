@@ -1,6 +1,6 @@
 {
   "name": "safis-cms-schema",
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.5",
   "description": "Creates GraphQL schema definition for Safis CMS",
   "main": "dist/index.js",
   "scripts": {

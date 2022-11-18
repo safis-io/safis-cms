@@ -48,7 +48,7 @@ We will use environment variables in this example to configure our `safis-cms-se
 
 ### Installation
 ```sh
-$ npm install safis-cms-server
+$ npm install safis-cms-server@beta
 ```
 
 > For this example, we will also be using the [`dotenv`](https://github.com/motdotla/dotenv) npm package.
@@ -57,10 +57,16 @@ $ npm install safis-cms-server
 Create and start a server using the `safis-cms-server` npm package:
 
 ```js
+require('dotenv').config()
+
+const { createServer } = require('safis-cms-server')
+
+/* ES6
 import { createServer } from 'safis-cms-server'
 import dotenv from 'dotenv'
 
 dotenv.config()
+*/
 
 const PORT = process.env.PORT || 3000
 
